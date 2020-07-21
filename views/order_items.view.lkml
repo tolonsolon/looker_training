@@ -67,6 +67,46 @@ view: order_items {
     sql: ${TABLE}."SALE_PRICE" ;;
   }
 
+  measure: total_price {
+    type: sum
+    sql: ${sale_price} ;;
+    label: "総売上"
+  }
+
+  measure: average_price {
+    type: average
+    sql: ${sale_price} ;;
+    label: "平均売上"
+  }
+
+
+
+  measure: total_sales_email_users {
+    type: sum
+    sql: ${sale_price} ;;
+    label: "Eメール総売り上げ"
+    filters: [users.is_email_source: "Yes"]
+#     filters: {
+#       field: users.is_email_source
+#       value: "Yes"
+#     }
+  }
+
+
+  measure: percentage_sales_email_source {
+    type: number
+    value_format_name: percent_2
+    sql: 1.0*${total_sales_email_users}/NULLIF(${total_price}, 0) ;;
+  }
+
+
+
+  measure: average_spend_per_user {
+    type: number
+    value_format_name: usd
+    sql: 1.0 * ${total_price} / NULLIF(${users.count},0) ;;
+  }
+
   dimension_group: shipped {
     type: time
     timeframes: [
@@ -97,6 +137,20 @@ view: order_items {
     drill_fields: [detail*]
   }
 
+  measure: order_count {
+    type: count_distinct
+    sql: ${order_id};;
+    label: "オーダー数"
+    description: "ユニークなオーダー数"
+
+  }
+
+
+  dimension: Shipping_Days{
+    type: number
+    sql:DATEDIFF(day,${shipped_date},${delivered_date}  ;;
+  }
+
   # ----- Sets of fields for drilling ------
   set: detail {
     fields: [
@@ -108,4 +162,5 @@ view: order_items {
       inventory_items.product_name
     ]
   }
+
 }
